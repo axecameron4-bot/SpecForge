@@ -1,0 +1,12 @@
+{
+  "paired_questions": 64,
+  "trained_accepted_length": 1.1328125,
+  "untrained_accepted_length": 1.0,
+  "mean_question_paired_difference": 0.1328125,
+  "paired_question_bootstrap_95_ci": [
+    0.1123046875,
+    0.1533203125
+  ],
+  "definition": "Includes clean anchor; 1 is anchor-only, 16 is a full block.",
+  "not_measured": "End-to-end speculative serving speedup"
+}

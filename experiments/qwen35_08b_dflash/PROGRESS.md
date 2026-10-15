@@ -84,3 +84,17 @@
 - Added `summarize.py` for the final paired acceptance comparison (bootstrap
   over questions), using identical target trajectories and anchor seeds.
 - Three research tests and the existing eager/SDPA mask parity test pass.
+
+## Initial baseline and paired benchmark finished
+
+- 64/64 GSM8K trajectories and the untrained control completed.
+- Mean anchor-inclusive accepted length: untrained 1.0, trained 1.1328125.
+- Paired question-bootstrap improvement CI: [0.1123047, 0.1533203] tokens.
+- On-policy draft token accuracy: 0.0546875. Weak acceptance; no speedup claim.
+- Frozen target capped exact match: 25/64; 40/64 completions hit 256 tokens.
+- Final report: results/REPORT.md; paired results: results/acceptance-comparison.json.
+- User requests a stronger, longer baseline next. Before launching, specify
+  training budget and improve the recipe; current 300-step run is only a pilot.
+- Current training dataset is UltraChat hard labels with live target features,
+  not target-generated on-policy training. Distinguish these explicitly when
+  choosing the stronger recipe. All processes from the pilot have finished.
