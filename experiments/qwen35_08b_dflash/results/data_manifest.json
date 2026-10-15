@@ -1,0 +1,27 @@
+{
+  "seed": 42,
+  "files": {
+    "train": {
+      "path": "cache/dataset/qwen35_08b_dflash/train.jsonl",
+      "count": 8192,
+      "split": "train_sft",
+      "sha256": "ccda8381e2a4e6a41e6818649748d582a1dba1d4f30f70ecf5a2ab340b18b37d"
+    },
+    "validation": {
+      "path": "cache/dataset/qwen35_08b_dflash/validation.jsonl",
+      "count": 256,
+      "split": "test_sft",
+      "sha256": "63ee0848a426ff8fda8d92c4e3818426d593befc4200cbf7c30ca49c720984e6"
+    },
+    "gsm8k": {
+      "path": "cache/dataset/qwen35_08b_dflash/gsm8k.jsonl",
+      "count": 64,
+      "split": "test",
+      "sha256": "895b5bb4eb98457e9f65e9cd2065434e8001a60ef680cecb4e67f032ec1900b5"
+    }
+  },
+  "datasets": {
+    "HuggingFaceH4/ultrachat_200k": "8049631c405ae6576f93f445c6b8166f76f5505a",
+    "openai/gsm8k": "740312add88f781978c0658806c59bc2815b9866"
+  }
+}
