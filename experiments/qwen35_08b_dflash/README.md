@@ -48,6 +48,9 @@ PyTorch stack; the research entry points do not import the SGLang runtime.
 
 ```bash
 export HF_HOME="$PWD/cache/huggingface"
+hf download Qwen/Qwen3.5-0.8B \
+  --revision 2fc06364715b967f1860aea9cf38778875588b17 \
+  --local-dir cache/models/Qwen3.5-0.8B
 python experiments/qwen35_08b_dflash/prepare_data.py
 python -m specforge.research.qwen35_dflash \
   --steps 300 --accumulation 4 --validation-size 64 \
@@ -76,3 +79,6 @@ Benchmark reports greedy accepted length INCLUDING the clean anchor token
 (minimum 1, maximum 16), on sampled full blocks of target completions. It also
 reports token accuracy, per-position survival and target GSM8K exact match.
 Target-only generation timing is not a speculative serving speed measurement.
+
+Data preparation reuses revisions from the tracked manifest by default.
+Use `--refresh-revisions` only when deliberately creating a new data version.

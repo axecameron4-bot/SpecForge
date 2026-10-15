@@ -64,3 +64,13 @@
   max 256 new tokens, non-thinking greedy target generation. Await completion
   before reporting acceptance or task accuracy.
 - Then run the untrained-draft control on the identical cached trajectories.
+
+## Benchmark interpretation discovered during run
+
+- At 16/64 GSM8K examples, 12 target completions reached the 256-token cap.
+  The target task score is therefore a capped-generation diagnostic, not a
+  complete GSM8K quality estimate. Keep length-limit counts in the final report.
+- Acceptance still compares full 16-token draft blocks with actual generated
+  target continuations. This remains the primary draft-quality measurement.
+- At this early budget, acceptance is close to the anchor-only floor; do not
+  claim meaningful acceleration or convergence from falling training loss.

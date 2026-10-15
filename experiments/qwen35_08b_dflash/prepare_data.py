@@ -14,17 +14,22 @@ def main():
     p.add_argument('--validation-size', type=int, default=256)
     p.add_argument('--benchmark-size', type=int, default=64)
     p.add_argument('--seed', type=int, default=42)
+    p.add_argument('--refresh-revisions', action='store_true', help='Resolve current Hub revisions instead of the recorded ones')
     a = p.parse_args()
     out = Path('cache/dataset/qwen35_08b_dflash')
     out.mkdir(parents=True, exist_ok=True)
-    manifest = {'seed': a.seed, 'files': {}, 'datasets': {}}
+    manifest_path = Path('experiments/qwen35_08b_dflash/results/data_manifest.json')
+    pinned = json.loads(manifest_path.read_text())['datasets'] if manifest_path.exists() and not a.refresh_revisions else {}
+    manifest = {'seed': a.seed, 'files': {}, 'datasets': dict(pinned)}
     api = HfApi()
     for repo, split, size, name, config in [
         ('HuggingFaceH4/ultrachat_200k', 'train_sft', a.train_size, 'train', None),
         ('HuggingFaceH4/ultrachat_200k', 'test_sft', a.validation_size, 'validation', None),
         ('openai/gsm8k', 'test', a.benchmark_size, 'gsm8k', 'main'),
     ]:
-        revision = manifest['datasets'].setdefault(repo, api.dataset_info(repo).sha)
+        if repo not in manifest['datasets']:
+            manifest['datasets'][repo] = api.dataset_info(repo).sha
+        revision = manifest['datasets'][repo]
         ds = load_dataset(repo, config, split=split, revision=revision,
                           cache_dir='cache/huggingface/datasets')
         ds = ds.shuffle(seed=a.seed).select(range(min(size, len(ds))))
@@ -49,7 +54,7 @@ def main():
     val_ids = {json.loads(l)['id'] for l in (out/'validation.jsonl').read_text().splitlines()}
     if train_ids & val_ids:
         raise ValueError('Training / validation prompt ID overlap')
-    Path('experiments/qwen35_08b_dflash/results/data_manifest.json').write_text(
+    manifest_path.write_text(
         json.dumps(manifest, indent=2)+'\n')
 
 
