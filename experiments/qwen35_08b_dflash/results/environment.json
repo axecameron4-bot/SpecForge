@@ -1,0 +1,24 @@
+{
+  "python": "3.13.15",
+  "packages": {
+    "torch": "2.11.0+cu130",
+    "transformers": "5.18.0",
+    "datasets": "4.8.5",
+    "huggingface-hub": "1.33.0",
+    "numpy": "2.1.3",
+    "safetensors": "0.8.0",
+    "accelerate": "1.15.0"
+  },
+  "gpu": "Tesla T4",
+  "gpu_memory_mib": 15360,
+  "nvidia_driver": "580.82.07",
+  "cuda_runtime": "13.0",
+  "base_commit": "d80daf31",
+  "model_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+  "attention_backend": "sdpa",
+  "target_dtype": "float16",
+  "draft_master_dtype": "float32",
+  "autocast_dtype": "float16",
+  "loss_scale_initial": 128,
+  "note": "GPU and network commands require agent sandbox escalation."
+}

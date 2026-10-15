@@ -8,6 +8,7 @@ from transformers import AutoTokenizer, Qwen3Config
 from specforge.algorithms.common.dflash_family_model import OnlineDFlashModel
 from specforge.modeling.draft.dflash import DFlashDraftModel, build_target_layer_ids
 from specforge.research.qwen35_dflash import encode
+from specforge.research.benchmark_qwen35_dflash import FullBlockBenchmarkModel, answer_number
 
 
 class TestQwen35DFlashResearch(unittest.TestCase):
@@ -40,6 +41,21 @@ class TestQwen35DFlashResearch(unittest.TestCase):
         self.assertIsNone(head.weight.grad)
         self.assertIsNone(embedding.weight.grad)
         self.assertEqual(build_target_layer_ids(24, 5), [1, 6, 11, 16, 21])
+
+    def test_benchmark_samples_only_complete_supervised_blocks(self):
+        sampler = object.__new__(FullBlockBenchmarkModel)
+        nn.Module.__init__(sampler)
+        sampler.block_size = 16
+        sampler.num_anchors = 64
+        mask = torch.zeros(1, 64)
+        mask[:, 20:] = 1
+        anchors, keep = sampler._sample_anchor_positions(64, mask, torch.device('cpu'))
+        self.assertTrue(keep.all())
+        self.assertTrue((anchors >= 20).all())
+        self.assertTrue((anchors + 16 <= 64).all())
+        self.assertEqual(anchors.numel(), 29)
+        self.assertEqual(answer_number('Reason 2 + 3 = 5. Answer: #### 5'), '5')
+        self.assertEqual(answer_number('Final: \u005c\u005cboxed{1,234}'), '1234')
 
     def test_real_tokenizer_assistant_boundary_and_prompt_truncation(self):
         tokenizer = AutoTokenizer.from_pretrained('cache/models/Qwen3.5-0.8B', local_files_only=True)

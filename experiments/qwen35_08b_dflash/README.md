@@ -40,3 +40,39 @@ This is a separate research entry point, leaving the production runtime alone.
 - `outputs/`: ignored checkpoints and full step logs (workspace root).
 
 Run commands and measured results are recorded as they become available.
+
+## Reproduce the initial baseline
+
+Run from the repository root with access to CUDA. Keep the existing Colab
+PyTorch stack; the research entry points do not import the SGLang runtime.
+
+```bash
+export HF_HOME="$PWD/cache/huggingface"
+python experiments/qwen35_08b_dflash/prepare_data.py
+python -m specforge.research.qwen35_dflash \
+  --steps 300 --accumulation 4 --validation-size 64 \
+  --run-id baseline-standard-layers
+python -m specforge.research.benchmark_qwen35_dflash \
+  --checkpoint outputs/qwen35_08b_dflash/baseline-standard-layers/step-300 \
+  --run-id baseline-standard-layers
+python -m specforge.research.benchmark_qwen35_dflash \
+  --trajectories outputs/qwen35_08b_dflash/baseline-standard-layers/gsm8k_predictions.jsonl \
+  --run-id untrained-standard-layers
+```
+
+Training run IDs cannot overwrite an existing output directory. `--checkpoint`
+loads draft weights as a warm start; it does not resume optimizer/data-stream
+state. Checkpoints also retain optimizer/scaler/RNG state for later resume work.
+For a matched all-layer run, use `--layers all` and a new run ID, holding every
+other hyperparameter fixed. Final target hidden state follows Hugging Face's
+output convention (final norm is applied to the last layer).
+
+The 300-step initial budget processes 1200 valid examples from the seeded 8192
+subset, batch size one with four-way accumulation. Maximum length is 512;
+examples with fewer than 17 supervised tokens after truncation are skipped.
+Use the same filtering and budget for the all-layer comparison.
+
+Benchmark reports greedy accepted length INCLUDING the clean anchor token
+(minimum 1, maximum 16), on sampled full blocks of target completions. It also
+reports token accuracy, per-position survival and target GSM8K exact match.
+Target-only generation timing is not a speculative serving speed measurement.
