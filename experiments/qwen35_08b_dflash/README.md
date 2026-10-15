@@ -1,5 +1,9 @@
 # Qwen3.5-0.8B DFlash layer study
 
+**Active recipe: [SGLANG.md](SGLANG.md) and `sglang-online.yaml`.**
+The HF run below is a legacy plumbing pilot trained on dataset answers.
+The intended baseline trains on actual target-generated tokens.
+
 Target: `Qwen/Qwen3.5-0.8B` (frozen). Train a DFlash draft using target
 hidden states computed live, without an offline hidden-state dataset.
 

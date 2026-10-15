@@ -398,6 +398,14 @@ def _prepare_prompts(
     source_path = path or configured_path
     if not source_path:
         raise ValueError("prompt preparation requires a non-empty data path")
+    if cfg.data.target_generation is not None:
+        from specforge.data.target_generation_prompts import prepare_generation_prompts
+
+        return prepare_generation_prompts(
+            source_path, tokenizer, max_length=cfg.data.max_length,
+            enable_thinking=cfg.data.target_generation.enable_thinking,
+            max_prompts=cfg.data.max_prompts,
+        )
     if cache_key is None:
         cache_key = (
             cfg.data.cache_key

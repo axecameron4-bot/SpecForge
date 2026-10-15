@@ -98,3 +98,36 @@
 - Current training dataset is UltraChat hard labels with live target features,
   not target-generated on-policy training. Distinguish these explicitly when
   choosing the stronger recipe. All processes from the pilot have finished.
+
+## 2026-10-15 — corrected target-generated SGLang pipeline
+
+User clarified that training labels must be actual target responses. The HF
+pilot did not satisfy that requirement and is now explicitly labeled legacy.
+
+- Added optional `data.target_generation` to the native SpecForge config.
+- Raw prompt preparation tokenizes only system/user turns before the first
+  assistant turn; dataset assistant answers are excluded completely.
+- The native producer wraps SGLang capture with batched target generation.
+  It uses exact output_ids, constructs generated-only supervision, then captures
+  the complete prompt+response sequence through the existing prefill sink.
+- Greedy response cache: pinned model namespace + target identity + exact prompt
+  IDs + sampling params. Reuses target answers across epochs; hidden states
+  still captured live. Cache hits travel in SampleRef provenance.
+- Added configs/qwen3.5-0.8b-dflash.json and recipe
+  `experiments/qwen35_08b_dflash/sglang-online.yaml`: 10k steps, effective batch8,
+  max length2048, generation cap1536, anchors64, save every250, bounded backlog.
+- Added SGLANG.md and bench_sglang.py (actual SGLang HTTP serving benchmark with
+  native acceptance counters and exact target-output comparison).
+- Downloaded SGLang0.5.18 / sglang-kernel0.4.6.post1 wheels for compatibility
+  inspection only. No replacement of the installed Python/PyTorch stack.
+- Existing spec-capture patch applied successfully to the unpacked0.5.18 wheel
+  under cache/sglang-package (no live server execution).
+- CUDA gate: cuobjdump confirms common_ops has no SM75 binary and no PTX.
+  Current GPU Tesla T4/SM75 cannot run this Qwen3.5 CUDA path unmodified.
+  Evidence: results/sglang-kernel-architecture-check.json; upstream issue24302.
+- User was asked whether L4/A100 is available; no answer received yet.
+- New tests verify exact generation->capture transport, loss masks, output
+  lengths, exclusion of poisoned dataset answers, malformed responses,
+  explicit config validation, and cache reuse with fresh capture.
+- Real server generation/capture, training smoke, serving benchmark and long
+  run are pending compatible GPU. No SGLang speedup or training result claimed.

@@ -1,0 +1,69 @@
+# Prompt-only online target generation, then prefill capture via SGLang 0.5.18.
+# External capture server and trainer share one supported CUDA GPU (SM80+).
+# GPU memory must be profiled before the long run; server reserves 35% initially.
+model:
+  target_model_path: cache/models/Qwen3.5-0.8B
+  draft_model_config: configs/qwen3.5-0.8b-dflash.json
+  target_backend: sglang
+  embedding_key: model.language_model.embed_tokens.weight
+  torch_dtype: bfloat16
+  mask_token_id: 248070
+  trust_remote_code: true
+data:
+  train_data_path: cache/dataset/qwen35_08b_dflash/train.jsonl
+  chat_template: qwen3.5
+  max_length: 2048
+  build_dataset_num_proc: 2
+  dataloader_num_workers: 0
+  cache_dir: cache/qwen35-sglang-online
+  target_generation:
+    max_new_tokens: 1536
+    temperature: 0.0
+    top_p: 1.0
+    enable_thinking: false
+    response_cache_dir: cache/qwen35-sglang-online/target-responses
+    cache_namespace: Qwen3.5-0.8B-2fc06364715b967f1860aea9cf38778875588b17-nonthinking-v1
+training:
+  strategy: dflash
+  max_steps: 10000
+  num_epochs: 20
+  batch_size: 1
+  accumulation_steps: 8
+  learning_rate: 0.0006
+  warmup_ratio: 0.04
+  max_grad_norm: 1.0
+  attention_backend: sdpa
+  num_anchors: 64
+  loss_decay_gamma: 7
+  objective_chunk_blocks: 1
+  dflash_teacher_metrics: false
+  save_interval: 250
+  log_interval: 10
+  dist_timeout: 60
+  seed: 42
+runtime:
+  producer_concurrency: 2
+  producer_lease: 4
+  in_flight_high_watermark: 16
+  in_flight_low_watermark: 8
+  resident_high_watermark_bytes: 536870912
+  resident_low_watermark_bytes: 268435456
+tracking:
+  report_to: tensorboard
+run_id: qwen35-08b-sglang-onpolicy-baseline
+output_dir: outputs/qwen35_08b_dflash/sglang-onpolicy-baseline
+
+deployment:
+  mode: disaggregated
+  trainer:
+    nnodes: 1
+    nproc_per_node: 1
+  disaggregated:
+    control_dir: outputs/qwen35_08b_dflash/sglang-onpolicy-baseline/control
+    consumer_state_dir: outputs/qwen35_08b_dflash/sglang-onpolicy-baseline/consumer-state
+    backend: mooncake
+    server_urls: [http://127.0.0.1:30000]
+    mooncake_metadata_server: http://127.0.0.1:35880/metadata
+    mooncake_master_server_addr: 127.0.0.1:35551
+    mooncake_protocol: tcp
+    receive_pool_bytes: 268435456

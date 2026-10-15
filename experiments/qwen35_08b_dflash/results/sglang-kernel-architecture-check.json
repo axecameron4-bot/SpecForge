@@ -1,0 +1,17 @@
+{
+  "sglang": "0.5.18",
+  "sglang_kernel": "0.4.6.post1",
+  "library": "sgl_kernel/sm90/common_ops.abi3.so",
+  "device": "Tesla T4 / SM75",
+  "architectures": {
+    "--list-elf": {
+      "sm_90": 47,
+      "sm_80": 47,
+      "sm_89": 47,
+      "sm_100": 47,
+      "sm_120a": 47,
+      "sm_90a": 47
+    },
+    "--list-ptx": {}
+  }
+}

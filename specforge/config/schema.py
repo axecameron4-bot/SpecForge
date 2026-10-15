@@ -402,6 +402,23 @@ class ModelConfig(StrictConfigModel):
         return self
 
 
+class TargetGenerationConfig(StrictConfigModel):
+    """Generate target continuations before server-side feature capture."""
+
+    max_new_tokens: int = Field(default=768, ge=2)
+    temperature: float = Field(default=0.0, ge=0)
+    top_p: float = Field(default=1.0, gt=0, le=1)
+    enable_thinking: bool = False
+    response_cache_dir: Optional[str] = None
+    cache_namespace: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _validate_cache(self):
+        if self.response_cache_dir and (not self.cache_namespace or self.temperature != 0):
+            raise ValueError("target response caching requires a pinned cache_namespace and temperature=0")
+        return self
+
+
 class DataConfig(StrictConfigModel):
     #: online mode — raw conversation JSON/JSONL.
     train_data_path: str = ""
@@ -424,6 +441,7 @@ class DataConfig(StrictConfigModel):
     cache_dir: str = "./cache"
     cache_key: Optional[str] = None
     max_prompts: Optional[int] = Field(default=None, ge=0)
+    target_generation: Optional[TargetGenerationConfig] = None
 
     @model_validator(mode="after")
     def _exactly_one_source(self):
@@ -1112,6 +1130,14 @@ class Config(StrictConfigModel):
     @model_validator(mode="after")
     def _validate_run_structure(self):
         """Validate topology and cross-field shape without resolving algorithms."""
+        if self.data.target_generation is not None:
+            if self.mode != "online" or self.model.input_modality != "text":
+                raise ValueError("data.target_generation requires online text training")
+            if self.training.strategy != "dflash":
+                raise ValueError("data.target_generation currently supports strategy=dflash")
+            if not self.data.train_data_path or self.data.is_preformatted:
+                raise ValueError("target generation requires raw conversation data.train_data_path")
+
         mode = self.mode
         deployment = self.deployment.mode
         role = self.training.role

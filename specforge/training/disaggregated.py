@@ -687,6 +687,15 @@ def _build_online(
             )
             for url in _server_urls(cfg)
         ]
+        if cfg.data.target_generation is not None:
+            from specforge.inference.adapters.target_generation import SGLangTargetGenerationAdapter
+
+            adapters = [
+                SGLangTargetGenerationAdapter(
+                    adapter, **cfg.data.target_generation.model_dump(exclude={"enable_thinking"})
+                )
+                for adapter in adapters
+            ]
         target_repr = streaming.target_representation
         peer_wait_timeout_s = _optional_timeout_s("DISAGG_PEER_WAIT_TIMEOUT")
         _workers, drive = build_disagg_online_producer(
