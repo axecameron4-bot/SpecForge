@@ -77,11 +77,15 @@ def main():
                 return_tensors='pt', return_dict=True,
             ).to('cuda')
             n_prompt = prompt['input_ids'].shape[1]
+            if a.trajectories and row['id'] not in cached:
+                raise ValueError('Cached trajectory is missing a benchmark example')
             if row['id'] in cached:
                 previous = cached[row['id']]
                 if previous['prompt_tokens'] != n_prompt:
                     raise ValueError('Cached trajectory prompt does not match')
                 ids = torch.tensor([previous['token_ids']], device='cuda')
+                if not torch.equal(ids[:, :n_prompt], prompt['input_ids']):
+                    raise ValueError('Cached trajectory prompt tokens do not match')
                 elapsed = previous['target_generation_seconds']
             else:
                 torch.cuda.synchronize()

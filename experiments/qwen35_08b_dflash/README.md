@@ -82,3 +82,12 @@ Target-only generation timing is not a speculative serving speed measurement.
 
 Data preparation reuses revisions from the tracked manifest by default.
 Use `--refresh-revisions` only when deliberately creating a new data version.
+
+After both benchmark runs, create the final comparison and report:
+
+```bash
+python experiments/qwen35_08b_dflash/summarize.py
+```
+
+`results/REPORT.md` is the human-readable report. The paired bootstrap resamples
+questions (not individual correlated anchors within one question).

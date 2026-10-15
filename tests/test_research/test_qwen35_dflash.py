@@ -1,5 +1,6 @@
 """Verify the research runner's supervision and all-layer conditioning."""
 import unittest
+from pathlib import Path
 
 import torch
 from torch import nn
@@ -57,6 +58,8 @@ class TestQwen35DFlashResearch(unittest.TestCase):
         self.assertEqual(answer_number('Reason 2 + 3 = 5. Answer: #### 5'), '5')
         self.assertEqual(answer_number('Final: \u005c\u005cboxed{1,234}'), '1234')
 
+    @unittest.skipUnless(Path('cache/models/Qwen3.5-0.8B/tokenizer.json').exists(),
+                         'Requires the locally downloaded Qwen3.5 tokenizer')
     def test_real_tokenizer_assistant_boundary_and_prompt_truncation(self):
         tokenizer = AutoTokenizer.from_pretrained('cache/models/Qwen3.5-0.8B', local_files_only=True)
         row = {'conversations': [{'role': 'user', 'content': 'Explain addition.'},

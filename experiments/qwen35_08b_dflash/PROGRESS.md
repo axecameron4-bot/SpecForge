@@ -74,3 +74,13 @@
   target continuations. This remains the primary draft-quality measurement.
 - At this early budget, acceptance is close to the anchor-only floor; do not
   claim meaningful acceleration or convergence from falling training loss.
+
+## All-layer path verified on GPU
+
+- Command: `python -m specforge.research.qwen35_dflash --layers all --steps 1 --accumulation 1 --validation-size 2 --run-id smoke-all-layers`.
+- Captured all layer IDs 0..23; 106,445,312 trainable draft parameters.
+- Real optimizer update applied with finite gradient norm 54.33; peak allocated
+  memory 3.882 GB. This is a smoke check, NOT a trained all-layer comparison.
+- Added `summarize.py` for the final paired acceptance comparison (bootstrap
+  over questions), using identical target trajectories and anchor seeds.
+- Three research tests and the existing eager/SDPA mask parity test pass.
