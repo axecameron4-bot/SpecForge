@@ -1,0 +1,10 @@
+{
+  "steps": 300,
+  "successful_optimizer_updates": 300,
+  "training_seconds": 376.90652232,
+  "valid_examples": 1200,
+  "filtered_examples": 126,
+  "peak_gpu_gb": 3.54563328,
+  "first20_mean_loss": 8.332650029659272,
+  "last20_mean_loss": 7.3617099821567535
+}

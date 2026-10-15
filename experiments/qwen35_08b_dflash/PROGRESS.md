@@ -50,3 +50,17 @@
   score plus DFlash acceptance on sampled full blocks from target trajectories.
   Generic speculative cache crop is unsafe for this hybrid model, so no
   end-to-end serving speedup is claimed. Full predictions stay in outputs/.
+
+## Baseline training complete; benchmark running
+
+- All 300/300 optimizer updates applied; no FP16 overflow skips.
+- 1200 valid training examples; 126 examples filtered after token truncation.
+- Training time: 376.91 s; peak allocated GPU memory: 3.546 GB.
+- Validation: 64 valid held-out conversations, mean example loss 7.17156,
+  mean example token accuracy 0.0631164. These are teacher-forced metrics.
+- Checkpoints: outputs/qwen35_08b_dflash/baseline-standard-layers/step-{100,200,300}.
+- Tracked: complete step metrics, summary, environment, and training curve.
+- GSM8K benchmark launched on final checkpoint, 64 seeded test examples,
+  max 256 new tokens, non-thinking greedy target generation. Await completion
+  before reporting acceptance or task accuracy.
+- Then run the untrained-draft control on the identical cached trajectories.
