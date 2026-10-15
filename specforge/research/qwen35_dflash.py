@@ -24,19 +24,24 @@ def read_jsonl(path):
     return [json.loads(line) for line in Path(path).read_text().splitlines() if line.strip()]
 
 
-def encode(row, tokenizer, max_length):
+def encode(row, tokenizer, max_length, device="cuda"):
     messages = row['conversations']
-    kwargs = dict(tokenize=True, enable_thinking=False)
+    kwargs = dict(tokenize=False, enable_thinking=False)
     prefix = tokenizer.apply_chat_template(messages[:1], add_generation_prompt=True, **kwargs)
-    ids = tokenizer.apply_chat_template(messages, add_generation_prompt=False, **kwargs)
-    if ids[:len(prefix)] != prefix:
+    text = tokenizer.apply_chat_template(messages, add_generation_prompt=False, **kwargs)
+    if not text.startswith(prefix):
         raise ValueError('Assistant span does not share rendered prompt prefix')
-    ids = ids[:max_length]
-    if len(ids) - len(prefix) < 17:
+    encoded = tokenizer(text, add_special_tokens=False, return_offsets_mapping=True,
+                        truncation=True, max_length=max_length)
+    ids = encoded['input_ids']
+    # BPE can merge across the prompt/answer boundary: use character offsets,
+    # rather than assuming separately tokenized prompt IDs are a token prefix.
+    supervised = [int(start >= len(prefix) and end > start)
+                  for start, end in encoded['offset_mapping']]
+    if sum(supervised) < 17:
         return None
-    tokens = torch.tensor([ids], device='cuda')
-    mask = torch.zeros_like(tokens, dtype=torch.float32)
-    mask[:, len(prefix):] = 1
+    tokens = torch.tensor([ids], device=device)
+    mask = torch.tensor([supervised], device=device, dtype=torch.float32)
     return tokens, mask
 
 
@@ -143,7 +148,7 @@ def main():
     random.shuffle(rows)
     stream = itertools.cycle(rows)
     optimizer = torch.optim.AdamW(draft.parameters(), lr=a.learning_rate, weight_decay=0.01)
-    scaler = torch.amp.GradScaler('cuda')
+    scaler = torch.amp.GradScaler('cuda', init_scale=128.0)
     start = time.perf_counter()
     optimizer.zero_grad(set_to_none=True)
     processed = skipped = 0
@@ -182,7 +187,7 @@ def main():
             optimizer.zero_grad(set_to_none=True)
             record = {'step': step, 'loss': sum(losses)/len(losses),
                       'accuracy': sum(accuracies)/len(accuracies), 'lr': lr,
-                      'grad_norm': float(grad_norm), 'optimizer_skipped': scaler.get_scale() < old_scale,
+                      'grad_norm': float(grad_norm) if torch.isfinite(grad_norm) else None, 'optimizer_skipped': scaler.get_scale() < old_scale,
                       'examples': processed, 'skipped_examples': skipped,
                       'seconds': time.perf_counter()-start,
                       'peak_gpu_gb': torch.cuda.max_memory_allocated()/1e9}

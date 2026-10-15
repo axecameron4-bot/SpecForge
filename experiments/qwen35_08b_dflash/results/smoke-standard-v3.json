@@ -1,0 +1,45 @@
+{
+  "target": "cache/models/Qwen3.5-0.8B",
+  "layers": "standard",
+  "steps": 3,
+  "accumulation": 1,
+  "anchors": 16,
+  "max_length": 512,
+  "learning_rate": 0.0006,
+  "validation_size": 2,
+  "save_every": 100,
+  "seed": 42,
+  "run_id": "smoke-standard-v3",
+  "checkpoint": null,
+  "gpu": "Tesla T4",
+  "torch": "2.11.0+cu130",
+  "target_layer_ids": [
+    1,
+    6,
+    11,
+    16,
+    21
+  ],
+  "trainable_parameters": 86522368,
+  "supervision": "UltraChat hard labels; target features inferred live",
+  "status": "completed",
+  "completed_steps": 3,
+  "elapsed_seconds": 5.958567015999961,
+  "validation": {
+    "examples": 2,
+    "mean_example_loss": 9.604876518249512,
+    "mean_example_token_accuracy": 0.014583333861082792,
+    "records": [
+      {
+        "id": "a59f5664bebecec40565355945c2b124b40b891096d9dfc807812fe33c7b8e47",
+        "loss": 9.117225646972656,
+        "accuracy": 0.01666666753590107
+      },
+      {
+        "id": "8d754cc700a2a07656c27e6fa00916efbfa328fa98a151c63dceeee8b8d3c68a",
+        "loss": 10.092527389526367,
+        "accuracy": 0.012500000186264515
+      }
+    ]
+  }
+}
